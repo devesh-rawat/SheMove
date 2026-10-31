@@ -444,81 +444,230 @@ class _SecuritySetupScreenState extends State<SecuritySetupScreen> {
     );
   }
 
+  Widget _buildModernPinSlots({
+    required String pin,
+    required Color activeColor,
+    required bool isDark,
+    bool isError = false,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 14),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(4, (index) {
+          final isFilled = index < pin.length;
+          final isCurrent = index == pin.length;
+
+          Color borderColor;
+          Color bgColor;
+          List<BoxShadow> shadows = [];
+
+          if (isError) {
+            borderColor = AppColors.emergencyRed;
+            bgColor = AppColors.emergencyRed.withValues(alpha: isDark ? 0.15 : 0.08);
+          } else if (isFilled) {
+            borderColor = activeColor;
+            bgColor = activeColor.withValues(alpha: isDark ? 0.16 : 0.08);
+            shadows = [
+              BoxShadow(
+                color: activeColor.withValues(alpha: isDark ? 0.35 : 0.2),
+                blurRadius: 10,
+                spreadRadius: 1,
+              ),
+            ];
+          } else if (isCurrent) {
+            borderColor = activeColor.withValues(alpha: 0.9);
+            bgColor = isDark
+                ? AppColors.midnightDarkSurfaceVariant
+                : AppColors.lightSurfaceVariant;
+            shadows = [
+              BoxShadow(
+                color: activeColor.withValues(alpha: 0.2),
+                blurRadius: 8,
+                spreadRadius: 0,
+              ),
+            ];
+          } else {
+            borderColor = isDark
+                ? AppColors.midnightDarkCardBorder
+                : AppColors.lightCardBorder;
+            bgColor = isDark
+                ? AppColors.midnightDarkSurface
+                : AppColors.lightSurface;
+          }
+
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOutCubic,
+            margin: const EdgeInsets.symmetric(horizontal: 7),
+            width: 58,
+            height: 64,
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: borderColor,
+                width: isFilled || isCurrent ? 2.0 : 1.2,
+              ),
+              boxShadow: shadows,
+            ),
+            child: Center(
+              child: isFilled
+                  ? AnimatedScale(
+                      scale: 1.0,
+                      duration: const Duration(milliseconds: 180),
+                      curve: Curves.elasticOut,
+                      child: Container(
+                        width: 16,
+                        height: 16,
+                        decoration: BoxDecoration(
+                          color: isError ? AppColors.emergencyRed : activeColor,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: (isError ? AppColors.emergencyRed : activeColor)
+                                  .withValues(alpha: 0.6),
+                              blurRadius: 8,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : isCurrent
+                      ? Container(
+                          width: 2.5,
+                          height: 22,
+                          decoration: BoxDecoration(
+                            color: activeColor.withValues(alpha: 0.8),
+                            borderRadius: BorderRadius.circular(1.5),
+                          ),
+                        )
+                      : null,
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
   Widget _buildStep2(bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Create Safety PIN',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: isDark ? AppColors.textPrimary : AppColors.lightTextPrimary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Enter a 4-digit PIN used to confirm your safety and disarm active protection checks.',
-          style: TextStyle(
-            fontSize: 14,
-            color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary,
-          ),
-        ),
-        const SizedBox(height: 20),
-
-        // PIN display
-        Center(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(4, (index) {
-              final isFilled = index < _safetyPin.length;
-              return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 8),
-                width: 20,
-                height: 20,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isFilled
-                      ? AppColors.primaryViolet
-                      : (isDark ? AppColors.midnightDarkCardBorder : AppColors.lightCardBorder),
-                ),
-              );
-            }),
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        // Normal safety PIN explanation card
+        // Mode Badge
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
-            color: AppColors.primaryViolet.withValues(alpha: isDark ? 0.15 : 0.08),
-            borderRadius: BorderRadius.circular(12),
+            color: AppColors.primaryViolet.withValues(alpha: isDark ? 0.18 : 0.1),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: AppColors.primaryViolet.withValues(alpha: isDark ? 0.35 : 0.25),
             ),
           ),
-          child: Row(
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.verified_user_rounded, color: AppColors.primaryViolet, size: 20),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Your daily security code. You will enter this PIN during periodic check-ins and to safely finish journeys.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? AppColors.textPrimary : AppColors.lightTextPrimary,
-                  ),
+              Icon(Icons.shield_rounded, size: 14, color: AppColors.primaryViolet),
+              SizedBox(width: 6),
+              Text(
+                'PRIMARY DEFENSE • DAILY ACCESS',
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.8,
+                  color: AppColors.primaryViolet,
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 10),
 
-        // Numeric Keypad
+        Text(
+          'Create Safety PIN',
+          style: TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.5,
+            color: isDark ? AppColors.textPrimary : AppColors.lightTextPrimary,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Your personal 4-digit code to confirm safe arrival and authenticate check-ins.',
+          style: TextStyle(
+            fontSize: 14,
+            height: 1.4,
+            color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary,
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // Modern 4-Pin Slots Visualizer (No duplicate dots!)
+        _buildModernPinSlots(
+          pin: _safetyPin,
+          activeColor: AppColors.primaryViolet,
+          isDark: isDark,
+          isError: _safetyPinError != null,
+        ),
+        const SizedBox(height: 14),
+
+        // Contextual Feature Card
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.midnightDarkSurface : AppColors.lightSurface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDark ? AppColors.midnightDarkCardBorder : AppColors.lightCardBorder,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.safeGreen.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.check_circle_outline_rounded,
+                    color: AppColors.safeGreen, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Routine Check-In Verification',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.textPrimary : AppColors.lightTextPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Enter this PIN to safely disarm countdowns, confirm arrival, and silence alerts.',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 18),
+
+        // Numeric Keypad (showPinDots: false to prevent duplicate dots!)
         NumericPinPad(
           enteredPin: _safetyPin,
+          showPinDots: false,
+          activeColor: AppColors.primaryViolet,
           onPinChange: (newPin) {
             setState(() {
               _safetyPin = newPin;
@@ -547,9 +696,16 @@ class _SecuritySetupScreenState extends State<SecuritySetupScreen> {
               backgroundColor: AppColors.primaryViolet,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             ),
-            child: const Text(
-              'Continue to Duress PIN',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Continue to Duress PIN',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                SizedBox(width: 8),
+                Icon(Icons.arrow_forward_rounded, size: 18),
+              ],
             ),
           ),
         ),
@@ -561,102 +717,161 @@ class _SecuritySetupScreenState extends State<SecuritySetupScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Create Duress PIN',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: isDark ? AppColors.textPrimary : AppColors.lightTextPrimary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Create a secret 4-digit code to use only if you are forced to disarm under threat.',
-          style: TextStyle(
-            fontSize: 14,
-            color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary,
-          ),
-        ),
-        const SizedBox(height: 20),
-
-        // PIN display
-        Center(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(4, (index) {
-              final isFilled = index < _duressPin.length;
-              return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 8),
-                width: 20,
-                height: 20,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isFilled
-                      ? AppColors.warningAmber
-                      : (isDark ? AppColors.midnightDarkCardBorder : AppColors.lightCardBorder),
-                ),
-              );
-            }),
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        // Duress PIN explanation / warning card
+        // Mode Badge
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
-            color: AppColors.warningAmber.withValues(alpha: isDark ? 0.18 : 0.1),
-            borderRadius: BorderRadius.circular(12),
+            color: AppColors.warningAmber.withValues(alpha: isDark ? 0.2 : 0.12),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: AppColors.warningAmber.withValues(alpha: isDark ? 0.6 : 0.4),
+              color: AppColors.warningAmber.withValues(alpha: isDark ? 0.45 : 0.3),
             ),
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.shield_outlined, color: AppColors.warningAmber, size: 22),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Covert Distress Protection',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.warningAmber,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'If someone forces you to disarm an alarm, enter this PIN instead. SheMove pretends to disarm normally, but secretly dispatches your live GPS and SOS telemetry to your emergency circle.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        height: 1.35,
-                        color: isDark ? AppColors.textPrimary : AppColors.lightTextPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Must be different from your Safety PIN (${_safetyPin.isNotEmpty ? _safetyPin : '1234'}).',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontStyle: FontStyle.italic,
-                        color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary,
-                      ),
-                    ),
-                  ],
+              Icon(Icons.lock_person_rounded, size: 14, color: AppColors.warningAmber),
+              SizedBox(width: 6),
+              Text(
+                'EMERGENCY STEALTH • COVERT DURESS',
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.8,
+                  color: AppColors.warningAmber,
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 10),
 
-        // Numeric Keypad
+        Text(
+          'Create Duress PIN',
+          style: TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.5,
+            color: isDark ? AppColors.textPrimary : AppColors.lightTextPrimary,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'A secret 4-digit code to use only if you are forced to disarm under coercion or threat.',
+          style: TextStyle(
+            fontSize: 14,
+            height: 1.4,
+            color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary,
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // Modern 4-Pin Slots Visualizer (No duplicate dots!)
+        _buildModernPinSlots(
+          pin: _duressPin,
+          activeColor: AppColors.warningAmber,
+          isDark: isDark,
+          isError: _duressPinError != null,
+        ),
+        const SizedBox(height: 14),
+
+        // Creative Dual-State Comparison Card
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.midnightDarkSurface : AppColors.lightSurface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppColors.warningAmber.withValues(alpha: isDark ? 0.35 : 0.25),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.warningAmber.withValues(alpha: isDark ? 0.08 : 0.04),
+                blurRadius: 12,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: AppColors.warningAmber.withValues(alpha: 0.16),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.visibility_off_rounded,
+                        color: AppColors.warningAmber, size: 16),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'To Attacker: App looks completely disarmed & safe',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? AppColors.textPrimary : AppColors.lightTextPrimary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.emergencyRed.withValues(alpha: isDark ? 0.15 : 0.08),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: AppColors.emergencyRed.withValues(alpha: isDark ? 0.3 : 0.2),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.emergency_share_rounded,
+                        color: AppColors.emergencyRedBright, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'In Secret: Transmits live GPS tracking & emergency SOS alerts to your guardians.',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? AppColors.textPrimary : AppColors.lightTextPrimary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(Icons.info_outline_rounded,
+                      size: 13, color: AppColors.warningAmber),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Must be different from Safety PIN (${_safetyPin.isNotEmpty ? _safetyPin : '1234'})',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? AppColors.warningAmber : const Color(0xFFD97706),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 18),
+
+        // Numeric Keypad (showPinDots: false to prevent duplicate dots!)
         NumericPinPad(
           enteredPin: _duressPin,
+          showPinDots: false,
+          activeColor: AppColors.warningAmber,
           onPinChange: (newPin) {
             setState(() {
               _duressPin = newPin;
@@ -692,9 +907,16 @@ class _SecuritySetupScreenState extends State<SecuritySetupScreen> {
               backgroundColor: AppColors.primaryViolet,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             ),
-            child: const Text(
-              'Continue to Emergency Contacts',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Continue to Emergency Contacts',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                SizedBox(width: 8),
+                Icon(Icons.arrow_forward_rounded, size: 18),
+              ],
             ),
           ),
         ),

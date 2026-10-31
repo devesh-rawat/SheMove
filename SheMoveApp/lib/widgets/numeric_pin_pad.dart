@@ -5,16 +5,20 @@ class NumericPinPad extends StatelessWidget {
   final int pinLength;
   final String enteredPin;
   final ValueChanged<String> onPinChange;
+  final bool showPinDots;
   final bool isError;
   final String? errorMessage;
+  final Color? activeColor;
 
   const NumericPinPad({
     super.key,
     this.pinLength = 4,
     required this.enteredPin,
     required this.onPinChange,
+    this.showPinDots = true,
     this.isError = false,
     this.errorMessage,
+    this.activeColor,
   });
 
   void _onKeyPress(String key) {
@@ -33,7 +37,10 @@ class NumericPinPad extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final dotActiveColor = isError ? AppColors.emergencyRed : AppColors.primaryViolet;
+    final effectiveActiveColor = isError
+        ? AppColors.emergencyRed
+        : (activeColor ?? AppColors.primaryViolet);
+    final dotActiveColor = effectiveActiveColor;
     final dotBorderColor = isError
         ? AppColors.emergencyRed
         : (isDark ? AppColors.midnightDarkCardBorder : AppColors.lightCardBorder);
@@ -41,41 +48,45 @@ class NumericPinPad extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // PIN dot indicators
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 18.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(pinLength, (index) {
-              final isFilled = index < enteredPin.length;
-              return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 8.0),
-                width: 18,
-                height: 18,
-                decoration: BoxDecoration(
-                  color: isFilled ? dotActiveColor : Colors.transparent,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isFilled ? dotActiveColor : dotBorderColor,
-                    width: 2,
+        // PIN dot indicators (optional)
+        if (showPinDots)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 18.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(pinLength, (index) {
+                final isFilled = index < enteredPin.length;
+                return Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 8.0),
+                  width: 18,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    color: isFilled ? dotActiveColor : Colors.transparent,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isFilled ? dotActiveColor : dotBorderColor,
+                      width: 2,
+                    ),
                   ),
-                ),
-              );
-            }),
+                );
+              }),
+            ),
           ),
-        ),
 
         // Optional error message
         if (errorMessage != null) ...[
-          Text(
-            errorMessage!,
-            style: const TextStyle(
-              color: AppColors.emergencyRed,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12.0),
+            child: Text(
+              errorMessage!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppColors.emergencyRed,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
-          const SizedBox(height: 12),
         ],
 
         // Keypad grid
@@ -118,13 +129,13 @@ class NumericPinPad extends StatelessWidget {
       content = Icon(
         Icons.backspace_outlined,
         color: isDark ? AppColors.textPrimary : AppColors.lightTextPrimary,
-        size: 24,
+        size: 22,
       );
     } else {
       content = Text(
         key,
         style: TextStyle(
-          fontSize: 24,
+          fontSize: 25,
           fontWeight: FontWeight.w600,
           color: isDark ? AppColors.textPrimary : AppColors.lightTextPrimary,
         ),
@@ -135,11 +146,23 @@ class NumericPinPad extends StatelessWidget {
       width: 68,
       height: 68,
       child: Material(
-        color: (key == 'BIO' || key == 'DEL') ? Colors.transparent : keyBg,
-        shape: const CircleBorder(),
+        color: key == 'DEL' ? Colors.transparent : keyBg,
+        shape: CircleBorder(
+          side: isDark
+              ? BorderSide(
+                  color: AppColors.midnightDarkCardBorder.withValues(alpha: 0.6),
+                  width: 1,
+                )
+              : BorderSide(
+                  color: AppColors.lightCardBorder.withValues(alpha: 0.8),
+                  width: 1,
+                ),
+        ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: () => _onKeyPress(key),
+          splashColor: (activeColor ?? AppColors.primaryViolet).withValues(alpha: 0.2),
+          highlightColor: (activeColor ?? AppColors.primaryViolet).withValues(alpha: 0.1),
           child: Center(child: content),
         ),
       ),
